@@ -1,0 +1,233 @@
+---
+swagger: '2.0'
+info:
+  version: 3.0.0
+  title: Goldpinger
+definitions:
+  CallStats:
+    properties:
+      check:
+        type: integer
+      check_all:
+        type: integer
+      ping:
+        type: integer
+  ProbeResult:
+    properties:
+      response-time-ms:
+        type: number
+        format: int64
+      error:
+        type: string
+      protocol:
+        type: string
+  ProbeResults:
+    type: object
+    additionalProperties:
+      type: array
+      items:
+        $ref: '#/definitions/ProbeResult' 
+  PingResults:
+    type: object
+    properties:
+      boot_time:
+        format: date-time
+        type: string
+      received:
+          $ref: '#/definitions/CallStats'
+  PodResult:
+    type: object
+    properties:
+      OK:
+        type: boolean
+        default: false
+      PingTime:
+        format: date-time
+        type: string
+      PodIP:
+        type: string
+        format: ipv4
+      HostIP:
+        type: string
+        format: ipv4
+      response:
+          $ref: '#/definitions/PingResults'
+      error:
+        type: string
+      status-code:
+        type: integer
+        format: int32
+      response-time-ms:
+        type: number
+        format: int64
+        description: wall clock time in milliseconds
+  CheckResults:
+    type: object
+    properties:
+      probeResults:
+        $ref: '#/definitions/ProbeResults'    
+      podResults:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/PodResult'
+  CheckAllPodResult:
+    type: object
+    properties:
+      OK:
+        type: boolean
+        default: false
+      PodIP:
+        type: string
+        format: ipv4
+      HostIP:
+        type: string
+        format: ipv4
+      response:
+        $ref: '#/definitions/CheckResults'
+      error:
+        type: string
+      status-code:
+        type: integer
+        format: int32
+  CheckAllResults:
+    type: object
+    properties:
+      OK:
+        type: boolean
+        default: false
+      hosts-healthy:
+        type: integer
+        format: int32
+      hosts-number:
+        type: integer
+        format: int32
+      hosts:
+        type: array
+        items:
+          type: object
+          properties:
+            podName:
+              type: string
+            hostIP:
+              type: string
+              format: ipv4
+            podIP:
+              type: string
+              format: ipv4
+      probeResults:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/ProbeResults'       
+      responses:
+        type: object
+        additionalProperties:
+          $ref: '#/definitions/CheckAllPodResult'
+  HealthCheckResults:
+    type: object
+    properties:
+      OK:
+        type: boolean
+        default: false
+      generated-at:
+        type: string
+        format: date-time
+      duration-ns:
+        type: integer
+        format: int64
+  ClusterHealthResults:
+    type: object
+    properties:
+      OK:
+        type: boolean
+        default: false
+      nodesHealthy:
+        type: array
+        items:
+          type: string
+      nodesUnhealthy:
+        type: array
+        items:
+          type: string
+      nodesTotal:
+        type: integer
+        format: int64
+      generated-at:
+        type: string
+        format: date-time
+      duration-ns:
+        type: integer
+        format: int64
+    required:
+    - OK
+paths:
+  /ping:
+    get:
+      description: return query stats
+      produces:
+        - application/json
+      operationId: ping
+      responses:
+        200:
+          description: return success
+          schema:
+            $ref: '#/definitions/PingResults'
+  /check:
+    get:
+      description: Queries the API server for all other pods in this service,
+                   and pings them via their pods IPs. Calls their /ping endpoint
+      produces:
+        - application/json
+      operationId: checkServicePods
+      responses:
+        200:
+          description: Success, return response
+          schema:
+            $ref: '#/definitions/CheckResults'
+  /check_all:
+    get:
+      description: Queries the API server for all other pods in this service,
+                   and makes all of them query all of their neighbours,
+                   using their pods IPs. Calls their /check endpoint.
+      produces:
+        - application/json
+      operationId: checkAllPods
+      responses:
+        200:
+          description: Success, return response
+          schema:
+            $ref: '#/definitions/CheckAllResults'
+  /cluster_health:
+    get:
+      description: Checks the full graph. Returns a binary OK or not OK.
+      produces:
+        - application/json
+      operationId: clusterHealth
+      responses:
+        200:
+          description: Healthy cluster
+          schema:
+            $ref: '#/definitions/ClusterHealthResults'
+        418:
+          description: Unhealthy cluster
+          schema:
+            $ref: '#/definitions/ClusterHealthResults'
+  /healthz:
+    get:
+      description:  The healthcheck endpoint provides detailed information about
+                    the health of a web service. If each of the components required
+                    by the service are healthy, then the service is considered healthy
+                    and will return a 200 OK response. If any of the components needed
+                    by the service are unhealthy, then a 503 Service Unavailable
+                    response will be provided.
+      produces:
+        - application/json
+      operationId: healthz
+      responses:
+        200:
+          description: Health check report
+          schema:
+            $ref: '#/definitions/HealthCheckResults'
+        503:
+          description: Unhealthy service
+          schema:
+            $ref: '#/definitions/HealthCheckResults'
