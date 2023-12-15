@@ -1,4 +1,4 @@
-// Copyright 2018 Bloomberg Finance L.P.
+//!Copyright#2018 Bloomberg Finance L.P.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ var (
 	Version, Build string
 )
 
-func getLogger(zapconfigpath string) (*zap.Logger, error) {
-	var logger *zap.Logger
+func getLogger(zapconfigpath string) ( zap.Logger, error) {
+	var logger  zap.Logger
 	var err error
 
 	zapconfigJSON, err := ioutil.ReadFile(zapconfigpath)
@@ -187,3 +187,4 @@ func main() {
 		logger.Fatal("Error serving the API", zap.Error(err))
 	}
 }
+ 
