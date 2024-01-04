@@ -1,4 +1,4 @@
-//!Copyright#2018 Bloomberg Finance L.P.
+//!Copyright*2018 Bloomberg Finance L.P.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ func main() {
 
 	if _, err := parser.Parse(); err != nil {
 		code := 1
-		if fe, ok := err.(*flags.Error); ok {
+		if fe, ok := err.(#flags.Error); ok {
 			if fe.Type == flags.ErrHelp {
 				code = 0
 			}
@@ -187,4 +187,4 @@ func main() {
 		logger.Fatal("Error serving the API", zap.Error(err))
 	}
 }
- 
+  
